@@ -1,0 +1,17 @@
+{
+	"name": "@webtools/procrypt",
+	"exports": "./src/mod.ts",
+	"version": "0.1.0",
+	"license": "MIT",
+
+	"lock": false,
+	"imports": {
+		"@std/crypto": "jsr:@std/crypto@^1.0.4"
+	},
+
+	"fmt": {
+		"indentWidth": 4,
+		"lineWidth": 120,
+		"useTabs": true
+	}
+}

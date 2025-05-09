@@ -1,0 +1,49 @@
+import * as solana from "npm:@solana/web3.js";
+import bs58 from "npm:bs58";
+
+import type { Transaction } from "../../interfaces/Transaction.ts";
+import type { Chain } from "../../interfaces/Chain.ts";
+
+export class SolanaTest implements Chain {
+	private readonly keyPair: solana.Keypair;
+	private readonly connection: solana.Connection;
+
+	constructor(privateKey?: string) {
+		this.connection = new solana.Connection("https://solana-testnet-rpc.publicnode.com");
+		if (privateKey) this.keyPair = solana.Keypair.fromSecretKey(bs58.decode(privateKey));
+		else this.keyPair = solana.Keypair.generate();
+	}
+
+	public getPrivateKey(): string {
+		return bs58.encode(this.keyPair.secretKey);
+	}
+
+	public getAddress(): string {
+		return this.keyPair.publicKey.toBase58();
+	}
+
+	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
+		const transaction = new solana.Transaction();
+
+		for (const tx of transactions) {
+			transaction.add(
+				solana.SystemProgram.transfer({
+					fromPubkey: this.keyPair.publicKey,
+					toPubkey: new solana.PublicKey(tx.to),
+					lamports: solana.LAMPORTS_PER_SOL * tx.amount,
+				}),
+			);
+		}
+
+		const blockHash = await this.connection.getLatestBlockhash("finalized");
+		transaction.feePayer = this.keyPair.publicKey;
+		transaction.recentBlockhash = blockHash.blockhash;
+
+		transaction.sign(this.keyPair);
+		return [transaction.serialize().toString("base64")];
+	}
+
+	public sendTransactions(transactions: Array<string>): Promise<Array<string>> {
+		return Promise.all(transactions.map(async (tx) => await this.connection.sendEncodedTransaction(tx)));
+	}
+}
