@@ -1,28 +1,26 @@
 import type * as signerPayment from "@scure/btc-signer/payment";
+import * as signerUtils from "@scure/btc-signer/utils";
 import * as signer from "@scure/btc-signer";
-import * as tinysecp from "tiny-secp256k1";
-import * as ecp from "ecpair";
 
 import type { Transaction } from "../interfaces/Transaction.ts";
 import type { Chain } from "../interfaces/Chain.ts";
-import type { Utxo } from "./Utxo.ts";
 import type { Network } from "./Network.ts";
-
-const ECPair = ecp.ECPairFactory(tinysecp);
+import type { Utxo } from "./Utxo.ts";
 
 export abstract class Segwit implements Chain {
-	private readonly keyPair: ecp.ECPairInterface;
+	private readonly privateKey: string;
 	private readonly payment: signerPayment.P2WPKH;
 
 	constructor(private readonly network: Network, privateKey?: string) {
-		if (privateKey) this.keyPair = ECPair.fromWIF(privateKey, network);
-		else this.keyPair = ECPair.makeRandom({ network });
+		const wif = signer.WIF(this.network);
+		this.privateKey = privateKey || wif.encode(signerUtils.randomPrivateKeyBytes());
 
-		this.payment = signer.p2wpkh(this.keyPair.publicKey, network);
+		const pubKey = signerUtils.pubECDSA(wif.decode(this.privateKey));
+		this.payment = signer.p2wpkh(pubKey, this.network);
 	}
 
 	public getPrivateKey(): string {
-		return this.keyPair.toWIF();
+		return this.privateKey;
 	}
 
 	public getAddress(): string {
@@ -60,7 +58,7 @@ export abstract class Segwit implements Chain {
 		});
 
 		const transaction = selected?.tx!;
-		transaction.sign(this.keyPair.privateKey!);
+		transaction.sign(signer.WIF(this.network).decode(this.privateKey));
 		transaction.finalize();
 
 		return [transaction.hex];
