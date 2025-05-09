@@ -1,6 +1,7 @@
+import type { Chain } from "../../interfaces/Chain.ts";
 import * as utxo from "../../utxo/index.ts";
 
-export class Bitcoin extends utxo.Segwit {
+export class Bitcoin extends utxo.Segwit implements Chain {
 	public static readonly network: utxo.Network = {
 		messagePrefix: "\x18Bitcoin Signed Message:\n",
 		bech32: "bc",
