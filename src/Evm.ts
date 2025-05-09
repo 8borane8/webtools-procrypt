@@ -1,4 +1,4 @@
-import * as ethers from "npm:ethers";
+import * as ethers from "ethers";
 
 import type { Transaction } from "./interfaces/Transaction.ts";
 import type { Chain } from "./interfaces/Chain.ts";

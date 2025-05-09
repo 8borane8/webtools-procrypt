@@ -6,7 +6,14 @@
 
 	"lock": false,
 	"imports": {
-		"@std/crypto": "jsr:@std/crypto@^1.0.4"
+		"@scure/btc-signer": "jsr:@scure/btc-signer@^1.8.0",
+
+		"@solana/web3.js": "npm:@solana/web3.js@^1.98.2",
+		"tiny-secp256k1": "npm:tiny-secp256k1@^2.2.3",
+		"tronweb": "npm:tronweb@^6.0.3",
+		"ethers": "npm:ethers@^6.14.0",
+		"ecpair": "npm:ecpair@^3.0.0",
+		"bs58": "npm:bs58@^6.0.0"
 	},
 
 	"fmt": {

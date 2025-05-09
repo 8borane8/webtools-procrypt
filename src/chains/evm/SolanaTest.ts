@@ -1,5 +1,5 @@
-import * as solana from "npm:@solana/web3.js";
-import bs58 from "npm:bs58";
+import * as solana from "@solana/web3.js";
+import bs58 from "bs58";
 
 import type { Transaction } from "../../interfaces/Transaction.ts";
 import type { Chain } from "../../interfaces/Chain.ts";

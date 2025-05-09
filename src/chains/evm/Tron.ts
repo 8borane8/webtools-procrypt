@@ -1,4 +1,4 @@
-import * as tronweb from "npm:tronweb";
+import * as tronweb from "tronweb";
 
 import type { Transaction } from "../../interfaces/Transaction.ts";
 import type { Chain } from "../../interfaces/Chain.ts";

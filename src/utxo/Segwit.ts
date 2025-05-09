@@ -1,7 +1,7 @@
-import type * as signerPayment from "jsr:@scure/btc-signer/payment";
-import * as signer from "jsr:@scure/btc-signer";
-import * as tinysecp from "npm:tiny-secp256k1";
-import * as ecp from "npm:ecpair";
+import type * as signerPayment from "@scure/btc-signer/payment";
+import * as signer from "@scure/btc-signer";
+import * as tinysecp from "tiny-secp256k1";
+import * as ecp from "ecpair";
 
 import type { Transaction } from "../interfaces/Transaction.ts";
 import type { Chain } from "../interfaces/Chain.ts";
