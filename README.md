@@ -34,7 +34,8 @@ deno add jsr:@webtools/procrypt
 
 ## 🧠 Usage Example
 
-ProCrypt provides a unified API to interact with all supported blockchains. Here is a minimal example using Ethereum testnet. All other chain classes follow the same interface.
+ProCrypt provides a unified API to interact with all supported blockchains. Here is a minimal example using Ethereum
+testnet. All other chain classes follow the same interface.
 
 ```ts
 import * as procrypt from "jsr:@webtools/procrypt";
@@ -43,11 +44,11 @@ import * as procrypt from "jsr:@webtools/procrypt";
 const wallet = new procrypt.Chains.EthereumSepolia("0xb14e0a4c18767...");
 
 console.log(wallet.getPrivateKey()); // => prints your private key
-console.log(wallet.getAddress());    // => prints your wallet address
+console.log(wallet.getAddress()); // => prints your wallet address
 
 // Sign transactions
 const signedTransactions = await wallet.signTransactions([
-  { to: "0xRecipientAddress", amount: 0.001 },
+	{ to: "0xRecipientAddress", amount: 0.001 },
 ]);
 
 console.log(signedTransactions); // => array of signed raw transactions
@@ -63,21 +64,21 @@ You can import and use any of the following wallet classes:
 
 ### UTXO-based:
 
-* `Bitcoin`
-* `BitcoinTest4`
-* `Litecoin`
-* `LitecoinTest`
+- `Bitcoin`
+- `BitcoinTest4`
+- `Litecoin`
+- `LitecoinTest`
 
 ### EVM-based:
 
-* `Ethereum`
-* `EthereumSepolia`
-* `Bsc`
-* `BscTest`
-* `Solana`
-* `SolanaTest`
-* `Tron`
-* `TronTest`
+- `Ethereum`
+- `EthereumSepolia`
+- `Bsc`
+- `BscTest`
+- `Solana`
+- `SolanaTest`
+- `Tron`
+- `TronTest`
 
 ## 📚 API Overview
 
@@ -85,8 +86,8 @@ You can import and use any of the following wallet classes:
 
 ```ts
 interface Transaction {
-  readonly to: string;
-  readonly amount: number;
+	readonly to: string;
+	readonly amount: number;
 }
 ```
 
@@ -96,10 +97,10 @@ All blockchain classes implement the `Chain` interface:
 
 ```ts
 interface Chain {
-  getPrivateKey(): string;
-  getAddress(): string;
-  signTransactions(transactions: Transaction[]): Promise<string[]>;
-  sendTransactions(transactions: string[]): Promise<string[]>;
+	getPrivateKey(): string;
+	getAddress(): string;
+	signTransactions(transactions: Transaction[]): Promise<string[]>;
+	sendTransactions(transactions: string[]): Promise<string[]>;
 }
 ```
 
@@ -107,12 +108,12 @@ interface Chain {
 
 | Blockchain          | Mainnet | Testnet |
 | ------------------- | ------- | ------- |
-| Bitcoin             | ✅       | ✅       |
-| Litecoin            | ✅       | ✅       |
-| Ethereum            | ✅       | ✅       |
-| Binance Smart Chain | ✅       | ✅       |
-| Solana              | ✅       | ✅       |
-| Tron                | ✅       | ✅       |
+| Bitcoin             | ✅      | ✅      |
+| Litecoin            | ✅      | ✅      |
+| Ethereum            | ✅      | ✅      |
+| Binance Smart Chain | ✅      | ✅      |
+| Solana              | ✅      | ✅      |
+| Tron                | ✅      | ✅      |
 
 ## License
 
