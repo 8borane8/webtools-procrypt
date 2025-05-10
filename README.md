@@ -46,6 +46,8 @@ const wallet = new procrypt.Chains.EthereumSepolia("0xb14e0a4c18767...");
 console.log(wallet.getPrivateKey()); // => prints your private key
 console.log(wallet.getAddress()); // => prints your wallet address
 
+console.log(wallet.isValidAddress("0xb14e0a4c18767...")); // => boolean
+
 // Sign transactions
 const signedTransactions = await wallet.signTransactions([
 	{ to: "0xRecipientAddress", amount: 0.001 },
@@ -101,6 +103,7 @@ interface Chain {
 	getAddress(): string;
 	signTransactions(transactions: Transaction[]): Promise<string[]>;
 	sendTransactions(transactions: string[]): Promise<string[]>;
+	isValidAddress(address: string): boolean;
 }
 ```
 

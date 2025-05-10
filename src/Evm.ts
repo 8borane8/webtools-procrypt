@@ -40,4 +40,8 @@ export class Evm implements Chain {
 			return response.hash;
 		}));
 	}
+
+	public isValidAddress(address: string): boolean {
+		return ethers.isAddress(address);
+	}
 }

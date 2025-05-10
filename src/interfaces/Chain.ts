@@ -5,4 +5,5 @@ export interface Chain {
 	getAddress(): string;
 	signTransactions(transactions: Array<Transaction>): Promise<Array<string>>;
 	sendTransactions(transactions: Array<string>): Promise<Array<string>>;
+	isValidAddress(address: string): boolean;
 }

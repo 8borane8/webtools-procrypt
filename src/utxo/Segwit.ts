@@ -1,6 +1,7 @@
 import type * as signerPayment from "@scure/btc-signer/payment";
 import * as signerUtils from "@scure/btc-signer/utils";
 import * as signer from "@scure/btc-signer";
+import * as base from "@scure/base";
 
 import type { Transaction } from "../interfaces/Transaction.ts";
 import type { Chain } from "../interfaces/Chain.ts";
@@ -66,5 +67,17 @@ export abstract class Segwit implements Chain {
 
 	public sendTransactions(transactions: Array<string>): Promise<Array<string>> {
 		return Promise.all(transactions.map((tx) => this.broadcastTransaction(tx)));
+	}
+
+	public isValidAddress(address: string): boolean {
+		try {
+			const decoded = base.bech32.decode(address as `${string}1${string}`);
+			if (decoded.prefix != this.network.bech32) return false;
+
+			const program = base.bech32.fromWords(decoded.words.slice(1));
+			return decoded.words[0] == 0 && program.length === 20;
+		} catch {
+			return false;
+		}
 	}
 }

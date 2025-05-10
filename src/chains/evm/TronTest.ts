@@ -48,4 +48,8 @@ export class TronTest implements Chain {
 			return response.txid;
 		}));
 	}
+
+	public isValidAddress(address: string): boolean {
+		return this.isValidAddress(address);
+	}
 }
