@@ -36,7 +36,6 @@ export class Solana implements Chain {
 		}
 
 		const blockHash = await this.connection.getLatestBlockhash("finalized");
-		transaction.feePayer = this.keyPair.publicKey;
 		transaction.recentBlockhash = blockHash.blockhash;
 
 		transaction.sign(this.keyPair);

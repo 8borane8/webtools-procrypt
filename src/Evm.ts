@@ -22,16 +22,20 @@ export class Evm implements Chain {
 
 	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
 		const fees = await this.provider.getFeeData();
-		return Promise.all(transactions.map(async (tx, i) =>
-			await this.wallet.signTransaction({
+		const gasLimit = BigInt(21000);
+
+		return Promise.all(transactions.map(async (tx, i) => {
+			const feesAmount = fees.gasPrice! * gasLimit;
+			const value = ethers.parseEther(tx.amount.toString()) - feesAmount;
+			return await this.wallet.signTransaction({
 				to: tx.to,
-				value: ethers.parseEther(tx.amount.toString()),
-				gasLimit: 21000,
+				value,
+				gasLimit,
 				gasPrice: fees.gasPrice,
 				nonce: await this.wallet.getNonce() + i,
 				chainId: this.chainId,
-			})
-		));
+			});
+		}));
 	}
 
 	public sendTransactions(transactions: Array<string>): Promise<Array<string>> {
