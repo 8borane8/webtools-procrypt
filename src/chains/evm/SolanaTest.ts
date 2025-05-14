@@ -37,6 +37,7 @@ export class SolanaTest implements Chain {
 
 		const blockHash = await this.connection.getLatestBlockhash("finalized");
 		transaction.recentBlockhash = blockHash.blockhash;
+		transaction.feePayer = new solana.PublicKey(transactions[0].to);
 
 		transaction.sign(this.keyPair);
 		return [transaction.serialize().toString("base64")];
