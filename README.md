@@ -48,11 +48,16 @@ console.log(wallet.getAddress()); // => prints your wallet address
 
 console.log(wallet.isValidAddress("0xb14e0a4c18767...")); // => boolean
 
-// Sign transactions
-const signedTransactions = await wallet.signTransactions([
+const transactions = [
 	{ to: "0xRecipientAddress", amount: 0.001 },
-]);
+];
 
+// Estimate transaction fees
+const estimatedFees = await wallet.estimateTransactionsFees(transactions);
+console.log(estimatedFees); // => array of estimated fees for each transaction
+
+// Sign transactions
+const signedTransactions = await wallet.signTransactions(transactions);
 console.log(signedTransactions); // => array of signed raw transactions
 
 // Broadcast transactions
@@ -80,7 +85,7 @@ You can import and use any of the following wallet classes:
 - `Solana`
 - `SolanaTest`
 - `Tron`
-- `TronTest`
+- `TronShasta`
 
 ## 📚 API Overview
 
@@ -101,8 +106,9 @@ All blockchain classes implement the `Chain` interface:
 interface Chain {
 	getPrivateKey(): string;
 	getAddress(): string;
-	signTransactions(transactions: Transaction[]): Promise<string[]>;
-	sendTransactions(transactions: string[]): Promise<string[]>;
+	estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>>;
+	signTransactions(transactions: Array<Transaction>): Promise<Array<string>>;
+	sendTransactions(transactions: Array<string>): Promise<Array<string>>;
 	isValidAddress(address: string): boolean;
 }
 ```

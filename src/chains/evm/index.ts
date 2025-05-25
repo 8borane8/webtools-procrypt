@@ -4,7 +4,7 @@ export * from "./Ethereum.ts";
 export * from "./SolanaTest.ts";
 export * from "./Solana.ts";
 
-export * from "./TronTest.ts";
+export * from "./TronShasta.ts";
 export * from "./Tron.ts";
 
 export * from "./BscTest.ts";

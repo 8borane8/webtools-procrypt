@@ -8,8 +8,8 @@ export class Solana implements Chain {
 	private readonly keyPair: solana.Keypair;
 	private readonly connection: solana.Connection;
 
-	constructor(privateKey?: string) {
-		this.connection = new solana.Connection("https://solana-rpc.publicnode.com");
+	constructor(privateKey?: string, rpc = "https://solana-rpc.publicnode.com") {
+		this.connection = new solana.Connection(rpc);
 		if (privateKey) this.keyPair = solana.Keypair.fromSecretKey(bs58.decode(privateKey));
 		else this.keyPair = solana.Keypair.generate();
 	}
@@ -20,6 +20,28 @@ export class Solana implements Chain {
 
 	public getAddress(): string {
 		return this.keyPair.publicKey.toBase58();
+	}
+
+	public async estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>> {
+		const transaction = new solana.Transaction();
+
+		for (const tx of transactions) {
+			transaction.add(
+				solana.SystemProgram.transfer({
+					fromPubkey: this.keyPair.publicKey,
+					toPubkey: new solana.PublicKey(tx.to),
+					lamports: solana.LAMPORTS_PER_SOL * tx.amount,
+				}),
+			);
+		}
+
+		const blockHash = await this.connection.getLatestBlockhash("finalized");
+		transaction.recentBlockhash = blockHash.blockhash;
+		transaction.feePayer = this.keyPair.publicKey;
+
+		const message = transaction.compileMessage();
+		const feeInfo = await this.connection.getFeeForMessage(message);
+		return [feeInfo.value! / solana.LAMPORTS_PER_SOL];
 	}
 
 	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
@@ -37,7 +59,7 @@ export class Solana implements Chain {
 
 		const blockHash = await this.connection.getLatestBlockhash("finalized");
 		transaction.recentBlockhash = blockHash.blockhash;
-		transaction.feePayer = new solana.PublicKey(transactions[0].to);
+		transaction.feePayer = this.keyPair.publicKey;
 
 		transaction.sign(this.keyPair);
 		return [transaction.serialize().toString("base64")];

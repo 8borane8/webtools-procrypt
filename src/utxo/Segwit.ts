@@ -32,6 +32,39 @@ export abstract class Segwit implements Chain {
 	abstract getRecommendedFees(): Promise<number>;
 	abstract broadcastTransaction(tx: string): Promise<string>;
 
+	public async estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>> {
+		const fees = await this.getRecommendedFees();
+
+		const utxo = await this.getUTXOs(this.payment.address);
+		const inputs = utxo.map((utxo) => ({
+			txid: utxo.txid,
+			index: utxo.index,
+			witnessUtxo: {
+				script: this.payment.script,
+				amount: BigInt(utxo.value),
+			},
+		}));
+
+		const outputs = transactions.map((tx) => ({
+			address: tx.to,
+			amount: signer.Decimal.decode(tx.amount.toString()),
+		}));
+
+		const selected = signer.selectUTXO(inputs, outputs, "default", {
+			changeAddress: this.payment.address,
+			feePerByte: BigInt(fees),
+			bip69: true,
+			createTx: true,
+			network: this.network,
+		});
+
+		const transaction = selected?.tx!;
+		transaction.sign(signer.WIF(this.network).decode(this.privateKey));
+		transaction.finalize();
+
+		return [Number(signer.Decimal.encode(transaction.fee))];
+	}
+
 	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
 		const fees = await this.getRecommendedFees();
 

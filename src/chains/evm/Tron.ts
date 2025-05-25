@@ -8,8 +8,8 @@ export class Tron implements Chain {
 	private readonly privateKey: string;
 	private readonly address: string;
 
-	constructor(privateKey?: string) {
-		this.tronWeb = new tronweb.TronWeb({ fullHost: "https://api.trongrid.io" });
+	constructor(privateKey?: string, rpc = "https://api.trongrid.io") {
+		this.tronWeb = new tronweb.TronWeb({ fullHost: rpc });
 		if (privateKey) {
 			this.privateKey = privateKey;
 			this.address = this.tronWeb.address.fromPrivateKey(privateKey) as string;
@@ -26,6 +26,19 @@ export class Tron implements Chain {
 
 	public getAddress(): string {
 		return this.address;
+	}
+
+	public estimateTransactionsFees(transactions: Array<Transaction>): Promise<number[]> {
+		return Promise.all(transactions.map(async (tx) => {
+			const raw = await this.tronWeb.transactionBuilder.sendTrx(
+				tx.to,
+				tx.amount * 1e6,
+				this.address,
+			);
+
+			const size = raw.raw_data_hex.length / 2;
+			return Math.round(size * 1e2) / 1e8;
+		}));
 	}
 
 	public signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
