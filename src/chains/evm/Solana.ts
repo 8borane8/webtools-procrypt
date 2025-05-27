@@ -69,7 +69,7 @@ export class Solana implements Chain {
 		return Promise.all(transactions.map(async (tx) => await this.connection.sendEncodedTransaction(tx)));
 	}
 
-	public isValidAddress(address: string): boolean {
+	public static isValidAddress(address: string): boolean {
 		try {
 			const publicKey = new solana.PublicKey(address);
 			return solana.PublicKey.isOnCurve(publicKey);

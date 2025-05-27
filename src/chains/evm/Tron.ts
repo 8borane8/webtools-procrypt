@@ -62,7 +62,7 @@ export class Tron implements Chain {
 		}));
 	}
 
-	public isValidAddress(address: string): boolean {
-		return this.isValidAddress(address);
+	public static isValidAddress(address: string): boolean {
+		return tronweb.TronWeb.isAddress(address);
 	}
 }

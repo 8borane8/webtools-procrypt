@@ -102,11 +102,11 @@ export abstract class Segwit implements Chain {
 		return Promise.all(transactions.map((tx) => this.broadcastTransaction(tx)));
 	}
 
-	public isValidAddress(address: string): boolean {
+	public static isValidAddress(address: string, network: Network): boolean {
 		try {
-			if (address.startsWith(this.network.bech32)) {
+			if (address.startsWith(network.bech32)) {
 				const decoded = base.bech32.decode(address as `${string}1${string}`);
-				if (decoded.prefix != this.network.bech32) return false;
+				if (decoded.prefix != network.bech32) return false;
 
 				const program = base.bech32.fromWords(decoded.words.slice(1));
 				return decoded.words[0] == 0 && program.length === 20;
@@ -116,7 +116,7 @@ export abstract class Segwit implements Chain {
 			if (decoded.length != 25) return false;
 
 			const version = decoded[0];
-			return version == this.network.pubKeyHash || version == this.network.scriptHash;
+			return version == network.pubKeyHash || version == network.scriptHash;
 		} catch {
 			return false;
 		}

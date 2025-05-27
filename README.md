@@ -46,7 +46,7 @@ const wallet = new procrypt.Chains.EthereumSepolia("0xb14e0a4c18767...");
 console.log(wallet.getPrivateKey()); // => prints your private key
 console.log(wallet.getAddress()); // => prints your wallet address
 
-console.log(wallet.isValidAddress("0xb14e0a4c18767...")); // => boolean
+console.log(procrypt.Chains.EthereumSepolia.isValidAddress(wallet.getAddress())); // => boolean
 
 const transactions = [
 	{ to: "0xRecipientAddress", amount: 0.001 },
@@ -103,13 +103,17 @@ interface Transaction {
 All blockchain classes implement the `Chain` interface:
 
 ```ts
+interface ChainConstructor {
+	new (privateKey?: string): Chain;
+	isValidAddress(address: string): boolean;
+}
+
 interface Chain {
 	getPrivateKey(): string;
 	getAddress(): string;
 	estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>>;
 	signTransactions(transactions: Array<Transaction>): Promise<Array<string>>;
 	sendTransactions(transactions: Array<string>): Promise<Array<string>>;
-	isValidAddress(address: string): boolean;
 }
 ```
 

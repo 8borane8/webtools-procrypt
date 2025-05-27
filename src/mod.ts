@@ -1,3 +1,4 @@
+export * from "./interfaces/ChainConstructor.ts";
 export * from "./interfaces/Transaction.ts";
 export * from "./interfaces/Chain.ts";
 

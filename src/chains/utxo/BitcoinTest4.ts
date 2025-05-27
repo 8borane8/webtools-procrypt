@@ -17,7 +17,7 @@ export class BitcoinTest4 extends utxo.Segwit {
 		super(BitcoinTest4.network, privateKey);
 	}
 
-	override async getUTXOs(address: string): Promise<Array<utxo.Utxo>> {
+	public override async getUTXOs(address: string): Promise<Array<utxo.Utxo>> {
 		const response = await fetch(`https://mempool.space/testnet4/api/address/${address}/utxo`);
 		const jsonResponse = await response.json();
 		return jsonResponse.map((utxo: { txid: string; vout: number; value: number }) => ({
@@ -27,17 +27,21 @@ export class BitcoinTest4 extends utxo.Segwit {
 		}));
 	}
 
-	override async getRecommendedFees(): Promise<number> {
+	public override async getRecommendedFees(): Promise<number> {
 		const response = await fetch("https://mempool.space/testnet4/api/v1/fees/recommended");
 		const jsonResponse = await response.json();
 		return jsonResponse.fastestFee;
 	}
 
-	override async broadcastTransaction(tx: string): Promise<string> {
+	public override async broadcastTransaction(tx: string): Promise<string> {
 		const response = await fetch("https://mempool.space/testnet4/api/tx", {
 			method: "POST",
 			body: tx,
 		});
 		return await response.text();
+	}
+
+	public static override isValidAddress(address: string): boolean {
+		return utxo.Segwit.isValidAddress(address, BitcoinTest4.network);
 	}
 }

@@ -51,7 +51,7 @@ export class Evm implements Chain {
 		}));
 	}
 
-	public isValidAddress(address: string): boolean {
+	public static isValidAddress(address: string): boolean {
 		return ethers.isAddress(address);
 	}
 }

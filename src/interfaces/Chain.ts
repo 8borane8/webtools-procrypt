@@ -6,5 +6,4 @@ export interface Chain {
 	estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>>;
 	signTransactions(transactions: Array<Transaction>): Promise<Array<string>>;
 	sendTransactions(transactions: Array<string>): Promise<Array<string>>;
-	isValidAddress(address: string): boolean;
 }
