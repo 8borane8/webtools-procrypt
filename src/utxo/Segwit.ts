@@ -52,7 +52,7 @@ export abstract class Segwit implements Chain {
 
 		const selected = signer.selectUTXO(inputs, outputs, "default", {
 			changeAddress: this.payment.address,
-			feePerByte: BigInt(fees),
+			feePerByte: 0n,
 			bip69: true,
 			createTx: true,
 			network: this.network,
@@ -62,7 +62,7 @@ export abstract class Segwit implements Chain {
 		transaction.sign(signer.WIF(this.network).decode(this.privateKey));
 		transaction.finalize();
 
-		return [Number(signer.Decimal.encode(transaction.fee))];
+		return [Number(signer.Decimal.encode(BigInt(transaction.vsize * fees)))];
 	}
 
 	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
