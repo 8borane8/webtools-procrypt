@@ -1,7 +1,7 @@
 {
 	"name": "@webtools/procrypt",
 	"exports": "./src/mod.ts",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"license": "MIT",
 
 	"lock": false,
@@ -11,8 +11,7 @@
 
 		"@solana/web3.js": "npm:@solana/web3.js@^1.98.2",
 		"tronweb": "npm:tronweb@^6.0.3",
-		"ethers": "npm:ethers@^6.14.0",
-		"bs58": "npm:bs58@^6.0.0"
+		"ethers": "npm:ethers@^6.14.0"
 	},
 
 	"fmt": {

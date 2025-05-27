@@ -1,5 +1,5 @@
 import * as solana from "@solana/web3.js";
-import bs58 from "bs58";
+import * as base from "@scure/base";
 
 import type { Transaction } from "../../interfaces/Transaction.ts";
 import type { Chain } from "../../interfaces/Chain.ts";
@@ -10,12 +10,12 @@ export class Solana implements Chain {
 
 	constructor(privateKey?: string, rpc = "https://solana-rpc.publicnode.com") {
 		this.connection = new solana.Connection(rpc);
-		if (privateKey) this.keyPair = solana.Keypair.fromSecretKey(bs58.decode(privateKey));
+		if (privateKey) this.keyPair = solana.Keypair.fromSecretKey(base.base58.decode(privateKey));
 		else this.keyPair = solana.Keypair.generate();
 	}
 
 	public getPrivateKey(): string {
-		return bs58.encode(this.keyPair.secretKey);
+		return base.base58.encode(this.keyPair.secretKey);
 	}
 
 	public getAddress(): string {
