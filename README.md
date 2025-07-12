@@ -46,7 +46,8 @@ const wallet = new procrypt.Chains.EthereumSepolia("0xb14e0a4c18767...");
 console.log(wallet.getPrivateKey()); // => prints your private key
 console.log(wallet.getAddress()); // => prints your wallet address
 
-console.log(procrypt.Chains.EthereumSepolia.isValidAddress(wallet.getAddress())); // => boolean
+const isValidAddress = procrypt.Chains.EthereumSepolia.isValidAddress(wallet.getAddress());
+console.log(isValidAddress); // => boolean
 
 const transactions = [
 	{ to: "0xRecipientAddress", amount: 0.001 },
