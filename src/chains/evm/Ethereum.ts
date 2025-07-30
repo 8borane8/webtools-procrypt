@@ -1,7 +1,12 @@
-import { Evm } from "../../Evm.ts";
+import type { TokenChainConstructor } from "../../interfaces/TokenChainConstructor.ts";
+import * as types from "../../types/index.ts";
 
-export class Ethereum extends Evm {
-	constructor(privateKey?: string) {
-		super("https://ethereum-rpc.publicnode.com", 1, privateKey);
+class Instance extends types.Evm {
+	public static override readonly type = 60;
+
+	constructor(privateKey?: string, rpcUrl: string = "https://ethereum-rpc.publicnode.com") {
+		super(rpcUrl, 1, privateKey);
 	}
 }
+
+export const Ethereum: TokenChainConstructor = Instance;

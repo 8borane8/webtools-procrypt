@@ -1,14 +1,17 @@
 {
 	"name": "@webtools/procrypt",
 	"exports": "./src/mod.ts",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"license": "MIT",
 
 	"lock": false,
 	"imports": {
 		"@scure/btc-signer": "jsr:@scure/btc-signer@^1.8.0",
+		"@scure/bip39": "jsr:@scure/bip39@^1.6.0",
+		"@scure/bip32": "jsr:@scure/bip32@^1.7.0",
 		"@scure/base": "jsr:@scure/base@^1.2.5",
 
+		"@solana/spl-token": "npm:@solana/spl-token@^0.4.13",
 		"@solana/web3.js": "npm:@solana/web3.js@^1.98.2",
 		"tronweb": "npm:tronweb@^6.0.3",
 		"ethers": "npm:ethers@^6.14.0"

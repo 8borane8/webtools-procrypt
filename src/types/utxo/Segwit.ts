@@ -3,12 +3,16 @@ import * as signerUtils from "@scure/btc-signer/utils";
 import * as signer from "@scure/btc-signer";
 import * as base from "@scure/base";
 
-import type { Transaction } from "../interfaces/Transaction.ts";
-import type { Chain } from "../interfaces/Chain.ts";
+import type { Transaction } from "../../interfaces/Transaction.ts";
+import type { Chain } from "../../interfaces/Chain.ts";
 import type { Network } from "./Network.ts";
 import type { Utxo } from "./Utxo.ts";
 
 export abstract class Segwit implements Chain {
+	protected static readonly network: Network;
+
+	public static readonly type: number;
+
 	private readonly privateKey: string;
 	private readonly payment: signerPayment.P2WPKH;
 
@@ -28,9 +32,9 @@ export abstract class Segwit implements Chain {
 		return this.payment.address;
 	}
 
-	abstract getUTXOs(address: string): Promise<Array<Utxo>>;
-	abstract getRecommendedFees(): Promise<number>;
-	abstract broadcastTransaction(tx: string): Promise<string>;
+	protected abstract getUTXOs(address: string): Promise<Array<Utxo>>;
+	protected abstract getRecommendedFees(): Promise<number>;
+	protected abstract broadcastTransaction(tx: string): Promise<string>;
 
 	public async estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>> {
 		const fees = await this.getRecommendedFees();
@@ -102,11 +106,11 @@ export abstract class Segwit implements Chain {
 		return Promise.all(transactions.map((tx) => this.broadcastTransaction(tx)));
 	}
 
-	public static isValidAddress(address: string, network: Network): boolean {
+	public static isValidAddress(address: string): boolean {
 		try {
-			if (address.startsWith(network.bech32)) {
+			if (address.startsWith(this.network.bech32)) {
 				const decoded = base.bech32.decode(address as `${string}1${string}`);
-				if (decoded.prefix != network.bech32) return false;
+				if (decoded.prefix != this.network.bech32) return false;
 
 				const program = base.bech32.fromWords(decoded.words.slice(1));
 				return decoded.words[0] == 0 && program.length === 20;
@@ -116,9 +120,14 @@ export abstract class Segwit implements Chain {
 			if (decoded.length != 25) return false;
 
 			const version = decoded[0];
-			return version == network.pubKeyHash || version == network.scriptHash;
+			return version == this.network.pubKeyHash || version == this.network.scriptHash;
 		} catch {
 			return false;
 		}
+	}
+
+	public static privateKeyBytesToString(bytes: Uint8Array): string {
+		const wif = signer.WIF(this.network);
+		return wif.encode(bytes);
 	}
 }

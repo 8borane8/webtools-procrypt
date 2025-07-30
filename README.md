@@ -8,7 +8,7 @@
 
 <p align="center">
     <img src="https://img.shields.io/github/issues-closed/8borane8/webtools-procrypt.svg" alt="issues-closed" />
-	&nbsp;
+    &nbsp;
     <img src="https://img.shields.io/github/license/8borane8/webtools-procrypt.svg" alt="license" />
     &nbsp;
     <img src="https://img.shields.io/github/stars/8borane8/webtools-procrypt.svg" alt="stars" />
@@ -16,15 +16,39 @@
     <img src="https://img.shields.io/github/forks/8borane8/webtools-procrypt.svg" alt="forks" />
 </p>
 
-<hr>
+---
 
 ## ✨ Features
 
-- Multi-chain wallet support (UTXO and EVM-based)
-- Supports Bitcoin, Litecoin, Ethereum, BSC, Solana, and Tron
-- Built-in testnet support for all chains
-- Easy transaction signing and broadcasting
-- Generates address from existing or new private keys
+- Unified interface for managing **multi-chain wallets**
+- Support for both **UTXO** and **account-based** chains
+- Fully typed and **polymorphic** architecture
+- Native support for **BIP-39**, **BIP-32**, **BIP-44**
+- Built-in **testnet support** for all blockchains
+- Seamless handling of **native and token transactions**
+
+---
+
+## 🧩 Core Architecture
+
+ProCrypt exposes two main base classes and one extended type:
+
+### ✅ `Wallet`
+
+Handles hierarchical deterministic wallets using standard derivation paths.\
+Allows you to generate, validate, and derive addresses for multiple blockchains from a single mnemonic.
+
+### ✅ `Chain`
+
+Abstract interface implemented by all supported blockchains.\
+Provides a common, unified API to interact with native coin transactions.
+
+### ✅ `TokenChain` (extends `Chain`)
+
+Used for blockchains that support token standards (like Ethereum, Solana, Tron).\
+Adds methods to handle token-based transactions via the `TokenTransaction` interface.
+
+---
 
 ## 📦 Installation
 
@@ -32,103 +56,145 @@
 deno add jsr:@webtools/procrypt
 ```
 
-## 🧠 Usage Example
+---
 
-ProCrypt provides a unified API to interact with all supported blockchains. Here is a minimal example using Ethereum
-testnet. All other chain classes follow the same interface.
+## 🧠 Wallet Example
 
 ```ts
-import * as procrypt from "jsr:@webtools/procrypt";
+import { Chains, Wallet } from "jsr:@webtools/procrypt";
 
-// Use an existing private key or leave empty to auto-generate one
-const wallet = new procrypt.Chains.EthereumSepolia("0xb14e0a4c18767...");
+// Create or restore a mnemonic-based wallet
+const wallet = new Wallet(); // or: new Wallet("your mnemonic");
 
-console.log(wallet.getPrivateKey()); // => prints your private key
-console.log(wallet.getAddress()); // => prints your wallet address
+// Derive a Bitcoin wallet at index 0
+const btc = wallet.derive(Chains.Bitcoin, 0);
 
-const isValidAddress = procrypt.Chains.EthereumSepolia.isValidAddress(wallet.getAddress());
-console.log(isValidAddress); // => boolean
+console.log(btc.getAddress()); // e.g. 1BoatSLRHt...
+console.log(wallet.getMnemonic()); // The mnemonic phrase
 
-const transactions = [
-	{ to: "0xRecipientAddress", amount: 0.001 },
-];
-
-// Estimate transaction fees
-const estimatedFees = await wallet.estimateTransactionsFees(transactions);
-console.log(estimatedFees); // => array of estimated fees for each transaction
-
-// Sign transactions
-const signedTransactions = await wallet.signTransactions(transactions);
-console.log(signedTransactions); // => array of signed raw transactions
-
-// Broadcast transactions
-const txIds = await wallet.sendTransactions(signedTransactions);
-console.log(txIds); // => array of transaction IDs
+// Check mnemonic validity
+console.log(Wallet.isValidMnemonic(wallet.getMnemonic())); // true
 ```
 
-## 🏗️ Available Classes
+---
 
-You can import and use any of the following wallet classes:
+## 🔗 Chain Example (native transaction)
 
-### UTXO-based:
+```ts
+import { Chains } from "jsr:@webtools/procrypt";
 
-- `Bitcoin`
-- `BitcoinTest4`
-- `Litecoin`
-- `LitecoinTest`
+// Bitcoin testnet 4 example
+const btc = new Chains.BitcoinTest4("0xYourPrivateKey");
 
-### EVM-based:
+const tx = [
+	{ to: "0xRecipient...", amount: 0.001 },
+];
 
-- `Ethereum`
-- `EthereumSepolia`
-- `Bsc`
-- `BscTest`
-- `Solana`
-- `SolanaTest`
-- `Tron`
-- `TronShasta`
+const fees = await btc.estimateTransactionsFees(tx); // => [feeAmount]
+const signed = await btc.signTransactions(tx); // => ["0xSignedTx"]
+const hashes = await btc.sendTransactions(signed); // => ["0xTransactionHash"]
+```
 
-## 📚 API Overview
+---
+
+## 🪙 TokenChain Example (token transaction)
+
+```ts
+import { Chains } from "jsr:@webtools/procrypt";
+
+// Ethereum mainnet
+const eth = new Chains.Ethereum("0xYourPrivateKey");
+
+const tokenTx = [
+	{
+		to: "0xRecipient...",
+		amount: 50,
+		tokenAddress: "0xA0b86991C6218b36c1d19D4a2e9Eb0cE3606EB48", // USDC
+	},
+];
+
+const tokenFees = await eth.estimateTokenTransactionsFees(tokenTx); // => [feeAmount]
+const tokenSigned = await eth.signTokenTransactions(tokenTx); // => ["0xSignedTx"]
+const tokenHashes = await eth.sendTransactions(tokenSigned); // => ["0xTransactionHash"]
+```
+
+---
+
+## 📚 API Summary
 
 ### `interface Transaction`
 
 ```ts
 interface Transaction {
 	readonly to: string;
+	readonly amount: number; // in native units
+}
+```
+
+### `interface TokenTransaction`
+
+```ts
+interface TokenTransaction {
+	readonly to: string;
 	readonly amount: number;
+	readonly tokenAddress: string;
+}
+```
+
+### `class Wallet`
+
+```ts
+class Wallet {
+	constructor(mnemonic?: string, complex?: boolean);
+
+	getMnemonic(): string;
+	derive(chain: ChainConstructor, index: number): Chain;
+
+	static isValidMnemonic(mnemonic: string): boolean;
 }
 ```
 
 ### `interface Chain`
 
-All blockchain classes implement the `Chain` interface:
-
 ```ts
-interface ChainConstructor {
-	new (privateKey?: string): Chain;
-	isValidAddress(address: string): boolean;
-}
-
 interface Chain {
+	constructor(privateKey?: string);
+
 	getPrivateKey(): string;
 	getAddress(): string;
-	estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>>;
-	signTransactions(transactions: Array<Transaction>): Promise<Array<string>>;
-	sendTransactions(transactions: Array<string>): Promise<Array<string>>;
+
+	estimateTransactionsFees(transactions: Transaction[]): Promise<number[]>;
+	signTransactions(transactions: Transaction[]): Promise<string[]>;
+	sendTransactions(transactions: string[]): Promise<string[]>;
 }
 ```
 
+### `interface TokenChain` (extends `Chain`)
+
+```ts
+interface TokenChain extends Chain {
+	constructor(privateKey?: string, rpcUrl: string);
+
+	estimateTokenTransactionsFees(transactions: TokenTransaction[]): Promise<number[]>;
+	signTokenTransactions(transactions: TokenTransaction[]): Promise<string[]>;
+}
+```
+
+---
+
 ## ✅ Supported Networks
 
-| Blockchain          | Mainnet | Testnet |
-| ------------------- | ------- | ------- |
-| Bitcoin             | ✅      | ✅      |
-| Litecoin            | ✅      | ✅      |
-| Ethereum            | ✅      | ✅      |
-| Binance Smart Chain | ✅      | ✅      |
-| Solana              | ✅      | ✅      |
-| Tron                | ✅      | ✅      |
+| Blockchain          | Mainnet Class     | Testnet Class            | Tokens |
+| ------------------- | ----------------- | ------------------------ | ------ |
+| Bitcoin             | `Chains.Bitcoin`  | `Chains.BitcoinTest4`    | ❌     |
+| Litecoin            | `Chains.Litecoin` | `Chains.LitecoinTest`    | ❌     |
+| Ethereum            | `Chains.Ethereum` | `Chains.EthereumSepolia` | ✅     |
+| Binance Smart Chain | `Chains.Bsc`      | `Chains.BscTest`         | ✅     |
+| Solana              | `Chains.Solana`   | `Chains.SolanaDev`       | ✅     |
+| Tron                | `Chains.Tron`     | `Chains.TronShasta`      | ✅     |
 
-## License
+---
+
+## 🪪 License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
