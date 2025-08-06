@@ -1,4 +1,4 @@
 export interface Transaction {
-	readonly to: string;
-	readonly amount: number;
+	to: string;
+	amount: number;
 }

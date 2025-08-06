@@ -1,5 +1,5 @@
-export interface TokenTransaction {
-	readonly to: string;
-	readonly amount: number;
-	readonly tokenAddress: string;
+import type { Transaction } from "./Transaction.ts";
+
+export interface TokenTransaction extends Transaction {
+	tokenAddress: string;
 }

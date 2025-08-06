@@ -126,18 +126,16 @@ const tokenHashes = await eth.sendTransactions(tokenSigned); // => ["0xTransacti
 
 ```ts
 interface Transaction {
-	readonly to: string;
-	readonly amount: number; // in native units
+	to: string;
+	amount: number;
 }
 ```
 
 ### `interface TokenTransaction`
 
 ```ts
-interface TokenTransaction {
-	readonly to: string;
-	readonly amount: number;
-	readonly tokenAddress: string;
+interface TokenTransaction extends Transaction {
+	tokenAddress: string;
 }
 ```
 
