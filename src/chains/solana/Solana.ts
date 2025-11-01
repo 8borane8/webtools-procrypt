@@ -2,7 +2,7 @@ import type { TokenChainConstructor } from "../../interfaces/TokenChainConstruct
 import * as types from "../../types/index.ts";
 
 class Instance extends types.Solana {
-	constructor(privateKey?: string, rpcUrl: string = "https://api.solana.com") {
+	constructor(privateKey?: string, rpcUrl: string = "https://api.mainnet-beta.solana.com") {
 		super(rpcUrl, privateKey);
 	}
 }
