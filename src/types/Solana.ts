@@ -35,7 +35,7 @@ export class Solana implements TokenChain {
 				solana.SystemProgram.transfer({
 					fromPubkey: this.keyPair.publicKey,
 					toPubkey: new solana.PublicKey(tx.to),
-					lamports: solana.LAMPORTS_PER_SOL * tx.amount,
+					lamports: Math.floor(solana.LAMPORTS_PER_SOL * tx.amount),
 				}),
 			);
 		}
@@ -57,7 +57,7 @@ export class Solana implements TokenChain {
 				solana.SystemProgram.transfer({
 					fromPubkey: this.keyPair.publicKey,
 					toPubkey: new solana.PublicKey(tx.to),
-					lamports: solana.LAMPORTS_PER_SOL * tx.amount,
+					lamports: Math.floor(solana.LAMPORTS_PER_SOL * tx.amount),
 				}),
 			);
 		}
@@ -106,7 +106,7 @@ export class Solana implements TokenChain {
 					fromTokenAccount.address,
 					toTokenAccount.address,
 					this.keyPair.publicKey,
-					tx.amount * 10 ** decimals,
+					Math.floor(tx.amount * 10 ** decimals),
 				),
 			);
 		}
@@ -133,7 +133,6 @@ export class Solana implements TokenChain {
 			if (decimals == undefined) {
 				const mintInfo = await solanaSpl.getMint(this.connection, mint);
 				decimals = mintInfo.decimals;
-				console.log(decimals);
 
 				decimalsCache.set(tx.tokenAddress, decimals);
 			}
@@ -157,7 +156,7 @@ export class Solana implements TokenChain {
 					fromTokenAccount.address,
 					toTokenAccount.address,
 					this.keyPair.publicKey,
-					tx.amount * 10 ** decimals,
+					Math.floor(tx.amount * 10 ** decimals),
 				),
 			);
 		}
