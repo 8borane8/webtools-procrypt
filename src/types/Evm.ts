@@ -57,15 +57,18 @@ export abstract class Evm implements TokenChain {
 		const fees = await this.provider.getFeeData();
 
 		const decimalsCache = new Map<string, number>();
+		const uniqueTokens = [...new Set(transactions.map((tx) => tx.tokenAddress))];
+
+		await Promise.all(uniqueTokens.map(async (tokenAddress) => {
+			if (!decimalsCache.has(tokenAddress)) {
+				const contract = new ethers.Contract(tokenAddress, erc20abi, this.provider);
+				const decimals = (await contract.decimals()) as number;
+				decimalsCache.set(tokenAddress, decimals);
+			}
+		}));
 
 		return Promise.all(transactions.map(async (tx) => {
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
-				const contract = new ethers.Contract(tx.tokenAddress, erc20abi, this.provider);
-				decimals = (await contract.decimals()) as number;
-
-				decimalsCache.set(tx.tokenAddress, decimals);
-			}
+			const decimals = decimalsCache.get(tx.tokenAddress)!;
 
 			const data = new ethers.Interface(erc20abi).encodeFunctionData("transfer", [
 				tx.to,
@@ -88,15 +91,18 @@ export abstract class Evm implements TokenChain {
 		const nonce = await this.wallet.getNonce();
 
 		const decimalsCache = new Map<string, number>();
+		const uniqueTokens = [...new Set(transactions.map((tx) => tx.tokenAddress))];
+
+		await Promise.all(uniqueTokens.map(async (tokenAddress) => {
+			if (!decimalsCache.has(tokenAddress)) {
+				const contract = new ethers.Contract(tokenAddress, erc20abi, this.provider);
+				const decimals = (await contract.decimals()) as number;
+				decimalsCache.set(tokenAddress, decimals);
+			}
+		}));
 
 		return Promise.all(transactions.map(async (tx, i) => {
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
-				const contract = new ethers.Contract(tx.tokenAddress, erc20abi, this.provider);
-				decimals = (await contract.decimals()) as number;
-
-				decimalsCache.set(tx.tokenAddress, decimals);
-			}
+			const decimals = decimalsCache.get(tx.tokenAddress)!;
 
 			const data = new ethers.Interface(erc20abi).encodeFunctionData("transfer", [
 				tx.to,

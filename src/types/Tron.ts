@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import * as tronweb from "tronweb";
 
 import type { TokenTransaction } from "../interfaces/TokenTransaction.ts";
@@ -59,66 +58,59 @@ export class Tron implements TokenChain {
 		}));
 	}
 
-	public estimateTokenTransactionsFees(transactions: TokenTransaction[]): Promise<number[]> {
+	private async loadTokenDecimals(tokenAddresses: string[]): Promise<Map<string, number>> {
 		const decimalsCache = new Map<string, number>();
+		const uniqueTokens = [...new Set(tokenAddresses)];
 
-		return Promise.all(transactions.map(async (tx) => {
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
+		await Promise.all(uniqueTokens.map(async (tokenAddress) => {
+			if (!decimalsCache.has(tokenAddress)) {
 				const res = await this.tronWeb.transactionBuilder.triggerConstantContract(
-					tx.tokenAddress,
+					tokenAddress,
 					"decimals()",
 					{},
 					[],
 					this.address,
 				);
-				decimals = parseInt(res.constant_result[0], 16);
-
-				decimalsCache.set(tx.tokenAddress, decimals);
+				const decimals = parseInt(res.constant_result[0], 16);
+				decimalsCache.set(tokenAddress, decimals);
 			}
+		}));
 
-			const amount = tx.amount * 10 ** decimals;
+		return decimalsCache;
+	}
 
-			const trigger = await this.tronWeb.transactionBuilder.triggerSmartContract(
-				tx.tokenAddress,
-				"transfer(address,uint256)",
-				{},
-				[{ type: "address", value: tx.to }, { type: "uint256", value: amount }],
-				this.address,
-			);
+	private async buildTokenTransaction(tx: TokenTransaction, decimals: number) {
+		const amount = tx.amount * 10 ** decimals;
+
+		const trigger = await this.tronWeb.transactionBuilder.triggerSmartContract(
+			tx.tokenAddress,
+			"transfer(address,uint256)",
+			{},
+			[{ type: "address", value: tx.to }, { type: "uint256", value: amount }],
+			this.address,
+		);
+
+		return trigger;
+	}
+
+	public async estimateTokenTransactionsFees(transactions: TokenTransaction[]): Promise<number[]> {
+		const decimalsCache = await this.loadTokenDecimals(transactions.map((tx) => tx.tokenAddress));
+
+		return Promise.all(transactions.map(async (tx) => {
+			const decimals = decimalsCache.get(tx.tokenAddress)!;
+			const trigger = await this.buildTokenTransaction(tx, decimals);
 
 			const size = trigger.transaction.raw_data_hex.length / 2;
 			return Math.round(size * 1e2) / 1e8;
 		}));
 	}
 
-	public signTokenTransactions(transactions: TokenTransaction[]): Promise<string[]> {
-		const decimalsCache = new Map<string, number>();
+	public async signTokenTransactions(transactions: TokenTransaction[]): Promise<string[]> {
+		const decimalsCache = await this.loadTokenDecimals(transactions.map((tx) => tx.tokenAddress));
 
 		return Promise.all(transactions.map(async (tx) => {
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
-				const res = await this.tronWeb.transactionBuilder.triggerConstantContract(
-					tx.tokenAddress,
-					"decimals()",
-					{},
-					[],
-					this.address,
-				);
-				decimals = parseInt(res.constant_result[0], 16);
-
-				decimalsCache.set(tx.tokenAddress, decimals);
-			}
-
-			const amount = tx.amount * 10 ** decimals;
-
-			const trigger = await this.tronWeb.transactionBuilder.triggerSmartContract(
-				tx.tokenAddress,
-				"transfer(address,uint256)",
-				{},
-				[{ type: "address", value: tx.to }, { type: "uint256", value: amount }],
-				this.address,
-			);
+			const decimals = decimalsCache.get(tx.tokenAddress)!;
+			const trigger = await this.buildTokenTransaction(tx, decimals);
 
 			const signedTransaction = await this.tronWeb.trx.sign(trigger.transaction, this.privateKey);
 			return btoa(JSON.stringify(signedTransaction));
@@ -140,6 +132,6 @@ export class Tron implements TokenChain {
 	}
 
 	public static privateKeyBytesToString(bytes: Uint8Array): string {
-		return Buffer.from(bytes).toString("hex");
+		return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 	}
 }

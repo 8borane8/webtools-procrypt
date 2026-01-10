@@ -27,7 +27,7 @@ export class Solana implements TokenChain {
 		return this.keyPair.publicKey.toBase58();
 	}
 
-	public async estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>> {
+	private async buildNativeTransaction(transactions: Array<Transaction>): Promise<solana.Transaction> {
 		const transaction = new solana.Transaction();
 
 		for (const tx of transactions) {
@@ -43,6 +43,12 @@ export class Solana implements TokenChain {
 		const blockHash = await this.connection.getLatestBlockhash("finalized");
 		transaction.recentBlockhash = blockHash.blockhash;
 		transaction.feePayer = this.keyPair.publicKey;
+
+		return transaction;
+	}
+
+	public async estimateTransactionsFees(transactions: Array<Transaction>): Promise<Array<number>> {
+		const transaction = await this.buildNativeTransaction(transactions);
 
 		const message = transaction.compileMessage();
 		const feeInfo = await this.connection.getFeeForMessage(message);
@@ -50,42 +56,29 @@ export class Solana implements TokenChain {
 	}
 
 	public async signTransactions(transactions: Array<Transaction>): Promise<Array<string>> {
-		const transaction = new solana.Transaction();
-
-		for (const tx of transactions) {
-			transaction.add(
-				solana.SystemProgram.transfer({
-					fromPubkey: this.keyPair.publicKey,
-					toPubkey: new solana.PublicKey(tx.to),
-					lamports: Math.floor(solana.LAMPORTS_PER_SOL * tx.amount),
-				}),
-			);
-		}
-
-		const blockHash = await this.connection.getLatestBlockhash("finalized");
-		transaction.recentBlockhash = blockHash.blockhash;
-		transaction.feePayer = this.keyPair.publicKey;
+		const transaction = await this.buildNativeTransaction(transactions);
 
 		transaction.sign(this.keyPair);
 		return [transaction.serialize().toString("base64")];
 	}
 
-	public async estimateTokenTransactionsFees(transactions: TokenTransaction[]): Promise<number[]> {
+	private async buildTokenTransaction(transactions: TokenTransaction[]): Promise<solana.Transaction> {
 		const transaction = new solana.Transaction();
-
 		const decimalsCache = new Map<string, number>();
+		const uniqueTokens = [...new Set(transactions.map((tx) => tx.tokenAddress))];
+
+		await Promise.all(uniqueTokens.map(async (tokenAddress) => {
+			if (!decimalsCache.has(tokenAddress)) {
+				const mint = new solana.PublicKey(tokenAddress);
+				const mintInfo = await solanaSpl.getMint(this.connection, mint);
+				decimalsCache.set(tokenAddress, mintInfo.decimals);
+			}
+		}));
 
 		for (const tx of transactions) {
 			const mint = new solana.PublicKey(tx.tokenAddress);
 			const toPublicKey = new solana.PublicKey(tx.to);
-
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
-				const mintInfo = await solanaSpl.getMint(this.connection, mint);
-				decimals = mintInfo.decimals;
-
-				decimalsCache.set(tx.tokenAddress, decimals);
-			}
+			const decimals = decimalsCache.get(tx.tokenAddress)!;
 
 			const fromTokenAccount = await solanaSpl.getOrCreateAssociatedTokenAccount(
 				this.connection,
@@ -114,6 +107,12 @@ export class Solana implements TokenChain {
 		const blockHash = await this.connection.getLatestBlockhash("finalized");
 		transaction.recentBlockhash = blockHash.blockhash;
 		transaction.feePayer = this.keyPair.publicKey;
+
+		return transaction;
+	}
+
+	public async estimateTokenTransactionsFees(transactions: TokenTransaction[]): Promise<number[]> {
+		const transaction = await this.buildTokenTransaction(transactions);
 
 		const message = transaction.compileMessage();
 		const feeInfo = await this.connection.getFeeForMessage(message);
@@ -121,49 +120,7 @@ export class Solana implements TokenChain {
 	}
 
 	public async signTokenTransactions(transactions: TokenTransaction[]): Promise<string[]> {
-		const transaction = new solana.Transaction();
-
-		const decimalsCache = new Map<string, number>();
-
-		for (const tx of transactions) {
-			const mint = new solana.PublicKey(tx.tokenAddress);
-			const toPublicKey = new solana.PublicKey(tx.to);
-
-			let decimals = decimalsCache.get(tx.tokenAddress);
-			if (decimals == undefined) {
-				const mintInfo = await solanaSpl.getMint(this.connection, mint);
-				decimals = mintInfo.decimals;
-
-				decimalsCache.set(tx.tokenAddress, decimals);
-			}
-
-			const fromTokenAccount = await solanaSpl.getOrCreateAssociatedTokenAccount(
-				this.connection,
-				this.keyPair,
-				mint,
-				this.keyPair.publicKey,
-			);
-
-			const toTokenAccount = await solanaSpl.getOrCreateAssociatedTokenAccount(
-				this.connection,
-				this.keyPair,
-				mint,
-				toPublicKey,
-			);
-
-			transaction.add(
-				solanaSpl.createTransferInstruction(
-					fromTokenAccount.address,
-					toTokenAccount.address,
-					this.keyPair.publicKey,
-					Math.floor(tx.amount * 10 ** decimals),
-				),
-			);
-		}
-
-		const blockHash = await this.connection.getLatestBlockhash("finalized");
-		transaction.recentBlockhash = blockHash.blockhash;
-		transaction.feePayer = this.keyPair.publicKey;
+		const transaction = await this.buildTokenTransaction(transactions);
 
 		transaction.sign(this.keyPair);
 		return [transaction.serialize().toString("base64")];
